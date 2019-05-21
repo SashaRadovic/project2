@@ -3,12 +3,9 @@ import requests
 import time
 from flask import Flask, jsonify, render_template, request
 from flask_socketio import SocketIO, emit
-try:
-    if history:
-        print(history)
-except:
-    history =[]
 
+history =[]
+channels=['music', 'fashion', 'books', 'movies']
 users={}
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")

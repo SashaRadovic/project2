@@ -4,6 +4,21 @@ document.addEventListener('DOMContentLoaded', () => {
     var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
 
+    function resize(image,width, height, quality){
+
+            const canvas =document.createElement('canvas');
+            canvas.width=width;
+            canvas.height=height;
+            const ctx=canvas.getContext('2d');
+
+            ctx.drawImage(image,0,0,width, height);
+            const resFile = ctx.canvas.toDataURL('image/jpeg', quality);
+
+            return resFile;
+
+                                                    };
+
+
     socket.on('connect', () => {
 
 
@@ -40,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     socket.on('disconnect', () =>{
 
-
+    let username =window.localStorage.getItem('username');
 
         socket.emit('disconnect', {'username':username});
     });
@@ -85,44 +100,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
 socket.on('connect', () =>{
     document.getElementById('imagefile').addEventListener('change', e =>{
-        var width =200;
-        var height=200;
+        //var width =200;
+        //var height=200;
     var file = e.target.files[0],
     reader = new FileReader();
     reader.readAsDataURL(e.target.files[0]);
     reader.onload = function(evt){
-        //Because of how the file was read,
-        //evt.target.result contains the image in base64 format
-        //Nothing special, just creates an img element
-        //and appends it to the DOM so my UI shows
-        //that I posted an image.
-        //send the image via Socket.io
+
 
         const img =new Image();
         img.src = evt.target.result;
-
-        img.onload = () => {
-        const canvas =document.createElement('canvas');
-        canvas.width=width;
-        canvas.height=height;
-        const ctx=canvas.getContext('2d');
-        ctx.drawImage(img,0,0,width, height);
-        const base64 = ctx.canvas.toDataURL('image/jpeg', 0.5);
+        var mock = img.src;
 
 
 
 
+        img.onload = () =>{
+            image = new Image();
+            image.src = mock;
+            var base64=resize(image, 150, 100, 0.6);
 
+            socket.emit('user_image',{'base64':base64} );
 
-
-
-        socket.emit('user_image',{'base64':base64} );
 };
-    //And now, read the image and base64
-    //reader.readAsDataURL(base64);
-        };
+
+
+
+
+
+};
+});
 });
 
 socket.on('send_image', data =>{
@@ -132,5 +142,4 @@ socket.on('send_image', data =>{
   document.querySelector('#chat-messages').appendChild(li);
 });
 
-});
 });
