@@ -37,6 +37,7 @@ def quit():
     username=users[request.sid]
     timestamp = time.strftime('%I:%M%p on %b %d, %Y')
     history.append(timestamp+': '+username+' disconnected')
+    print(history)
     emit('quit_msg', {"username":username, 'timestamp':timestamp}, broadcast=True)
 
 @socketio.on("msg")
