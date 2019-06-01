@@ -1,3 +1,6 @@
+window.onbeforeunload = ()=>{
+     window.sessionStorage.clear();
+}
 document.addEventListener("DOMContentLoaded", () => {
   // Connect to websocket
   var socket = io.connect(
@@ -16,120 +19,131 @@ document.addEventListener("DOMContentLoaded", () => {
     return resFile;
   }
 
+
+  function package (data ){
+  const divChat = document.createElement("li");
+  divChat.className='chat';
+  document.querySelector("ul").appendChild(divChat);
+
+  const divAvatar = document.createElement("div");
+  divAvatar.className = "avatar";
+  divChat.appendChild(divAvatar);
+  if (data.post !=null){
+  const divMessage = document.createElement("p");
+  divMessage.className = "chat-message";
+  divMessage.innerHTML =` ${data.post}`;
+  divChat.appendChild(divMessage);}
+
+  const divUser = document.createElement('p');
+  divUser.className ='user';
+  divUser.innerHTML=`${data.username}`
+  divChat.appendChild(divUser);
+ if (data.base64!=null){
+  const divImage = document.createElement("p");
+  divImage.className = "chat-img";
+  divImage.innerHTML = `${'<img src="' + data.base64 + '"/>'} `;
+  divChat.appendChild(divImage);}
+
+  const divTime= document.createElement('p');
+  divTime.className ='time';
+  divTime.innerHTML=`${data.timestamp}`
+  divChat.appendChild(divTime);
+  }
+
+
+
+
   socket.on("connect", () => {
     if (window.localStorage.getItem("username") !== null) {
       var username = window.localStorage.getItem("username");
-      const li = document.createElement("li");
-      li.innerHTML = "Welcome back " + username + "!";
-      document.querySelector("#chat-messages").appendChild(li);
-    } else {
+      const wMessage = document.createElement("li");
+      var room = window.localStorage.getItem("room");
+      wMessage.innerHTML = "Welcome back " + username + "!";
+      document.querySelector("#chat-wrp").appendChild(wMessage);
+      document.querySelector("h3").innerHTML = "#" + room;
+  }
+
+      else {
       var guest = "Guest" + Math.floor(Math.random() * 10000 + 5000);
       window.localStorage.setItem("username", guest);
       var username = window.localStorage.getItem("username");
-      const li = document.createElement("li");
-      li.innerHTML = "You are now connected as:  " + username + "!";
-      document.querySelector("#chat-messages").appendChild(li);
-    }
-
-    socket.emit("welcome", { username: username });
+      const info = document.createElement("li");
+      var room = "general";
+      window.localStorage.setItem("room", room);
+      info.innerHTML =
+        "You are now connected as:  " +
+        username +
+        ", on channel -- general! You can set new username or channel";
+      document.querySelector("#chat-wrp").appendChild(info);
+      document.querySelector("h3").innerHTML = "#" + room;
+  };
+    socket.emit("welcome", { username: username, room: room });
   });
 
   socket.on("connect", () => {
-    document.getElementById("sendForm").addEventListener("submit", e => {
+       const input = document.getElementById("input-message");
+       document.querySelectorAll('.emoji').forEach(function(button) {
+              button.onclick = function() {
+              console.log(input.value);
+              input.value +=  String.fromCodePoint(button.dataset.value);
+              }
+       });
+    document.getElementById("input-send").addEventListener("click", e => {
       e.preventDefault();
-      const post = document.getElementById("input-message").value;
 
-      const username = window.localStorage.getItem("username");
-      document.getElementById("input-message").value = "";
-      socket.emit("msg", { post: post, username: username });
-    });
-  });
 
-  socket.on("disconnect", () => {
-    let username = window.localStorage.getItem("username");
 
-    socket.emit("disconnect", { username: username });
-  });
 
-  socket.on("quit_msg", data => {
-    const span = document.createElement("span");
-    span.innerHTML = `${data.timestamp}: ${data.username} disconnected`;
+          const post = input.value;
+          console.log(post);
+          let room = window.localStorage.getItem("room");
+          const username = window.localStorage.getItem("username");
+          if (input.value !=''){
 
-    document.querySelector(".chat").appendChild(span);
+          socket.emit("msg", { post: post, username: username, room: room });
+      }
+          document.getElementById("input-message").value = "";
+      });
   });
 
   socket.on("wlc", data => {
-    const span = document.createElement("span");
-    span.innerHTML = `${data.timestamp}: ${data.username} connected`;
-    document.querySelector(".chat").appendChild(span);
-  });
 
-  socket.on("restr", data => {
-    var history = data.history;
-    var histLength = history.length;
+      const divChat = document.createElement("li");
+      divChat.className = "chat";
+      document.querySelector("ul").appendChild(divChat);
+      const span = document.createElement("p");
+      span.className = "server-message";
+      span.innerHTML = `${data.timestamp}: ${
+      data.username
+      } connected on channel ${data.room}`;
+      divChat.appendChild(span);
+      console.log(data.channels)
 
-    for (var i = 0; i < histLength; i++) {
-      
-      if (history[i].includes("base64")) {
-        const divChat = document.createElement("div");
-        divChat.className = "chat";
-        document.querySelector(".chatlogs").appendChild(divChat);
+    if (sessionStorage.getItem('channels')==null){
+        sessionStorage.setItem('channels', 'set')
 
-        const divMessage = document.createElement("p");
-        divMessage.className = "chat-message";
-        document.querySelector(".chat").appendChild(divMessage);
-        const divAvatar = document.createElement("div");
-        divAvatar.className = "avatar";
-        document.querySelector(".chat").appendChild(divAvatar);
-        divMessage.innerHTML = `${'<img src="' + history[i] + '"/>'}`;
-      } else if (
-        history[i].includes("connect") ||
-        history[i].includes("disconnect")
-      ) {
-        const span = document.createElement("span");
-        span.innerHTML = `${history[i]}`;
-        document.querySelector(".chat").appendChild(span);
-      } else {
-        const divChat = document.createElement("div");
-        divChat.className = "chat";
-        document.querySelector(".chatlogs").appendChild(divChat);
-
-        const divMessage = document.createElement("p");
-        divMessage.className = "chat-message";
-        document.querySelector(".chat").appendChild(divMessage);
-        const divAvatar = document.createElement("div");
-        divAvatar.className = "avatar";
-        document.querySelector(".chat").appendChild(divAvatar);
-        divMessage.innerHTML = history[i];
-      }
-      //document.querySelector('#chat-messages').appendChild(li);
+     for (i =0; i<data.channels.length;i++){
+         let channelButton = document.createElement('button');
+         channelButton.className='ch-button form-control';
+         channelButton.innerHTML=data.channels[i];
+         console.log(data.channels[i]);
+         document.querySelector('#newItem').appendChild(channelButton);}
     }
   });
 
   socket.on("send_message", data => {
-    const divChat = document.createElement("div");
-    divChat.className = "chat";
-    document.querySelector(".chatlogs").appendChild(divChat);
-
-    const divMessage = document.createElement("p");
-    divMessage.className = "chat-message";
-    document.querySelector(".chat").appendChild(divMessage);
-    const divAvatar = document.createElement("div");
-    divAvatar.className = "avatar";
-    document.querySelector(".chat").appendChild(divAvatar);
-    //const p = document.createElement('p');
-    divMessage.innerHTML = `<small><i>${data.timestamp}:<br></i></small> <b>${
-      data.username
-    }:</b> ${data.post}`;
-    //document.querySelector('.chat-message').appendChild(p);
+    if (data.post !=''){
+        package(data);
+    }
   });
 
   socket.on("connect", () => {
     document.getElementById("imagefile").addEventListener("change", e => {
-      //var width =200;
-      //var height=200;
+
+      let room = window.localStorage.getItem("room");
       var file = e.target.files[0],
         reader = new FileReader();
+
       reader.readAsDataURL(e.target.files[0]);
       reader.onload = function(evt) {
         const img = new Image();
@@ -141,7 +155,7 @@ document.addEventListener("DOMContentLoaded", () => {
           image.src = mock;
           var base64 = resize(image, 150, 100, 0.6);
 
-          socket.emit("user_image", { base64: base64 });
+          socket.emit("user_image", { base64: base64, room: room });
         };
       };
     });
@@ -149,15 +163,71 @@ document.addEventListener("DOMContentLoaded", () => {
 
   socket.on("send_image", data => {
 
-    const p = document.createElement("p");
-    p.className = "chat-message";
-    p.innerHTML = `${data.timestamp}: ${data.username}: ${'<img src="' +
-      data.base64 +
-      '"/>'}`;
+      package(data)
 
-    document.querySelector(".chat").appendChild(p);
-    const divAvatar = document.createElement("div");
-    divAvatar.className = "avatar";
-    document.querySelector(".chat").appendChild(divAvatar);
   });
+
+socket.on("restr", data => {
+  var history = data.history;
+  var histLength = history.length;
+
+  for (var i = 1; i < histLength; i++) {
+
+    if (history[i].includes("data:image/jpeg;base64")) {
+      const divChat = document.createElement("li");
+      divChat.className = "chat";
+      document.querySelector("ul").appendChild(divChat);
+
+      const divMessage = document.createElement("p");
+      divMessage.className = "chat-message";
+      divChat.appendChild(divMessage);
+
+      divMessage.innerHTML = `${'<img src="' + history[i] + '"/>'}`;
+    }
+
+    else if (
+      history[i].includes("connect") ||
+      history[i].includes("disconnect")
+    ) {
+        const divChat = document.createElement("li");
+        divChat.className = "chat";
+        document.querySelector("ul").appendChild(divChat);
+      const span = document.createElement("p");
+      span.className = "server-message";
+      span.innerHTML = `${history[i]}`;
+      divChat.appendChild(span);
+    }
+
+    else {
+      const divChat = document.createElement("li");
+      divChat.className = "chat";
+      document.querySelector("ul").appendChild(divChat);
+
+      const divAvatar = document.createElement("div");
+      divAvatar.className = "avatar";
+      divChat.appendChild(divAvatar);
+      const divMessage = document.createElement("p");
+      divMessage.className = "chat-message";
+      divChat.appendChild(divMessage);
+
+      divMessage.innerHTML = history[i];
+    }
+  }
+});
+socket.on("disconnect", () => {
+  let username = window.localStorage.getItem("username");
+  let room = window.localStorage.getItem("room");
+  socket.emit("disconnect", { username: username, room: room });
+});
+
+socket.on("quit_msg", data => {
+  const li = document.createElement("li");
+  li.className = "server-message";
+  li.innerHTML = `${data.timestamp}: ${data.username} disconnected`;
+
+  document.querySelector("ul").appendChild(li);
+});
+
+
+
 });
