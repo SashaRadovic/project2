@@ -6,7 +6,7 @@ from flask_socketio import SocketIO, emit, join_room, leave_room
 
 
 channels=['music', 'fashion', 'books', 'movies','baba']
-history ={'music':[],'fashion':[],'books':[],'movies':[]}
+history ={'music':[],'fashion':[],'books':[],'movies':[], 'baba':[]}
 users={}
 users_per_rooms={}
 app = Flask(__name__)
@@ -44,7 +44,7 @@ def welcome(data):
     print(users_per_rooms)
     history[room].append(timestamp+': '+username+' connected on channel '+room)
     print(history)
-    emit('wlc', {"username":username, 'timestamp':timestamp,"room":room,'users_per_rooms':users_per_rooms, 'channels':channels }, broadcast=True)
+    emit('wlc', {"username":username, 'timestamp':timestamp,'users_per_rooms':users_per_rooms, 'channels':channels,'room':room },room=room)
 
     emit('restr', {"history":history[room]})
 
@@ -60,7 +60,7 @@ def quit():
     history[room].append(timestamp+': '+username+' disconnected')
     del users_per_rooms[username]
     print(users_per_rooms)
-    emit('quit_msg', {"username":username, 'timestamp':timestamp, 'room':room,'users_per_rooms':users_per_rooms }, broadcast=True)
+    emit('quit_msg', {"username":username, 'timestamp':timestamp, 'room':room,'users_per_rooms':users_per_rooms },room=room)
 
 @socketio.on("msg")
 def send_message(data):
@@ -72,7 +72,7 @@ def send_message(data):
     history[room].append(timestamp+': '+username+': '+post)
     print(history)
 
-    emit("send_message", {'post': post,'username':username, 'timestamp':timestamp, 'room':room, 'channels':channels}, broadcast=True )
+    emit("send_message", {'post': post,'username':username, 'timestamp':timestamp, 'channels':channels}, room=room)
 
 @socketio.on("user_image")
 def send_image(data):
@@ -83,7 +83,20 @@ def send_image(data):
     timestamp = time.strftime('%I:%M%p on %b %d, %Y')
     history[room].append(timestamp+': '+username+': ')
     history[room].append(base64)
-    emit("send_image", {'base64':base64, 'username':username, 'timestamp':timestamp,'room':room}, broadcast=True)
+    emit("send_image", {'base64':base64, 'username':username, 'timestamp':timestamp},room=room)
+
+@socketio.on("selectRoom")
+def roomChange(data):
+
+    room=data['room']
+    username=data['username']
+    timestamp = time.strftime('%I:%M%p on %b %d, %Y')
+    join_room(room)
+    print(room)
+    emit("roomChange", {'username':username,'timestamp':timestamp,'room':room} , broadcast=True)
+
+
+
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)

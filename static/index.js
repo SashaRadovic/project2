@@ -50,13 +50,38 @@ document.addEventListener("DOMContentLoaded", () => {
   divChat.appendChild(divTime);
   }
 
+function settingRoom(){
+    const changeRoom =this.innerHTML;
+    console.log(this.innerHTML);
+    var username=localStorage.getItem('username')
+    console.log(username)
+    document.querySelector('h3').innerHTML='#'+changeRoom;
+
+    window.localStorage.setItem('room',changeRoom)
+    socket.emit('selectRoom', {username:username, room:changeRoom})
+}
+
+//socket.on('roomChange', (data) =>{
+//    let room = data['room']
+//    document.querySelector('h3').innerHTML='#'+room;
+
+///    window.localStorage.setItem('room',room)
+//});
+
+
 
 
 
   socket.on("connect", () => {
+
+
+
+
+
     if (window.localStorage.getItem("username") !== null) {
       var username = window.localStorage.getItem("username");
       const wMessage = document.createElement("li");
+
       var room = window.localStorage.getItem("room");
       wMessage.innerHTML = "Welcome back " + username + "!";
       document.querySelector("#chat-wrp").appendChild(wMessage);
@@ -70,15 +95,18 @@ document.addEventListener("DOMContentLoaded", () => {
       const info = document.createElement("li");
       var room = "general";
       window.localStorage.setItem("room", room);
+
       info.innerHTML =
         "You are now connected as:  " +
         username +
-        ", on channel -- general! You can set new username or channel";
+        ", on channel --"+ room+ "! You can set new username or channel";
       document.querySelector("#chat-wrp").appendChild(info);
       document.querySelector("h3").innerHTML = "#" + room;
   };
     socket.emit("welcome", { username: username, room: room });
   });
+
+
 
   socket.on("connect", () => {
        const input = document.getElementById("input-message");
@@ -123,9 +151,10 @@ document.addEventListener("DOMContentLoaded", () => {
         sessionStorage.setItem('channels', 'set')
 
      for (i =0; i<data.channels.length;i++){
-         let channelButton = document.createElement('button');
+         var channelButton = document.createElement('button');
          channelButton.className='ch-button form-control';
          channelButton.innerHTML=data.channels[i];
+         channelButton.onclick = settingRoom;
          console.log(data.channels[i]);
          document.querySelector('#newItem').appendChild(channelButton);}
     }
@@ -166,6 +195,40 @@ document.addEventListener("DOMContentLoaded", () => {
       package(data)
 
   });
+
+
+
+
+
+
+
+
+
+
+
+  socket.on("connect", () => {
+const inputChannel =document.querySelector('#post-channel');
+document.getElementById("inputChannelButton").addEventListener("click", e => {
+     e.preventDefault();
+        const newRoom = inputChannel.value;
+        console.log(newRoom)
+
+
+          const username = window.localStorage.getItem("username");
+          if (inputChannel.value !=''){
+
+         socket.emit("addtRoom", {username: username, newRoom :newRoom });
+    }
+
+});
+});
+
+
+
+
+
+
+
 
 socket.on("restr", data => {
   var history = data.history;
