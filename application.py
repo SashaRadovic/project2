@@ -28,11 +28,7 @@ def welcome(data):
     upr={username:room}
     print(upr)
     users_per_rooms.update(upr)
-    if room not in channels:
-        channels.append(room)
-        print(channels)
-        new_chanel={room:[]}
-        history.update(new_chanel)
+    print(users_per_rooms)
     join_room(room)
     timestamp = time.strftime('%I:%M%p on %b %d, %Y')
     sid=request.sid
@@ -44,9 +40,38 @@ def welcome(data):
     print(users_per_rooms)
     history[room].append(timestamp+': '+username+' connected on channel '+room)
     print(history)
-    emit('wlc', {"username":username, 'timestamp':timestamp,'users_per_rooms':users_per_rooms, 'channels':channels,'room':room },room=room)
+    emit('wlc', {"username":username, 'timestamp':timestamp,'users_per_rooms':users_per_rooms, 'channels':channels,'room':room },broadcast=True)
 
     emit('restr', {"history":history[room]})
+
+
+@socketio.on('addRoom')
+def createRoom(data):
+    room=data['room']
+    username=data['username']
+    if room not in channels:
+        channels.append(room)
+        print(channels)
+        new_chanel={room:[]}
+        history.update(new_chanel)
+    del users_per_rooms[username]
+    new_chanel_pair={username:room}
+    users_per_rooms.update(new_chanel_pair)
+    emit('createRoom', {'room':room, 'username':username, 'users_per_rooms':users_per_rooms}, broadcast=True)
+
+@socketio.on('addUser')
+def checkUser(data):
+    username=data['username']
+    room=data['room']
+    oldUser=data['oldUser']
+    del users_per_rooms[oldUser]
+    newValue={username:room}
+    print(newValue)
+    users_per_rooms.update(newValue)
+    print(users_per_rooms)
+    emit('checkUser', {'users_per_rooms':users_per_rooms})
+
+
 
 @socketio.on("disconnect")
 def quit():
@@ -87,13 +112,33 @@ def send_image(data):
 
 @socketio.on("selectRoom")
 def roomChange(data):
+    username=data['username']
+    oldRoom=data['oldRoom']
+    leave_room(oldRoom)
+    room=data['room']
+    join_room(room)
 
+    print(room,oldRoom)
+    del users_per_rooms[username]
+    newValueRoom={username:room}
+    print(newValueRoom)
+    users_per_rooms.update(newValueRoom)
+    timestamp = time.strftime('%I:%M%p on %b %d, %Y')
+
+    print(room)
+    print(users_per_rooms)
+    emit("roomChange", {'username':username,'timestamp':timestamp,'room':room, 'channels':channels,'users_per_rooms':users_per_rooms} , broadcast=True)
+
+@socketio.on("sendGIF")
+def gifDisplay(data):
     room=data['room']
     username=data['username']
+    imgSrc=data['imgSrc']
     timestamp = time.strftime('%I:%M%p on %b %d, %Y')
-    join_room(room)
-    print(room)
-    emit("roomChange", {'username':username,'timestamp':timestamp,'room':room} , broadcast=True)
+    history[room].append(timestamp+': '+username+': ')
+    history[room].append(imgSrc)
+    print(imgSrc)
+    emit("gifDisplay", {'username':username,'timestamp':timestamp,'room':room, 'channels':channels,'users_per_rooms':users_per_rooms, 'imgSrc':imgSrc}, room=room)
 
 
 
