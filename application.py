@@ -5,8 +5,8 @@ from flask import Flask, jsonify, render_template, request
 from flask_socketio import SocketIO, emit, join_room, leave_room
 
 
-channels=['music', 'fashion', 'books', 'movies','baba']
-history ={'music':[],'fashion':[],'books':[],'movies':[], 'baba':[]}
+channels=['music', 'fashion', 'books', 'movies','general']
+history ={'general':[],'music':[],'fashion':[],'books':[],'movies':[]}
 users={}
 users_per_rooms={}
 app = Flask(__name__)
@@ -127,7 +127,10 @@ def roomChange(data):
 
     print(room)
     print(users_per_rooms)
+
+
     emit("roomChange", {'username':username,'timestamp':timestamp,'room':room, 'channels':channels,'users_per_rooms':users_per_rooms} , broadcast=True)
+    emit("restr", {'history':history[room]})
 
 @socketio.on("sendGIF")
 def gifDisplay(data):
