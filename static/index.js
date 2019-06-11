@@ -6,6 +6,10 @@ document.addEventListener("DOMContentLoaded", () => {
   var socket = io.connect(
     location.protocol + "//" + document.domain + ":" + location.port
   );
+  if (window.localStorage.getItem('avatar') != null){
+  var avatarSrc=window.localStorage.getItem('avatar');
+  document.getElementById('inputAvatarLabel').style.backgroundImage="url("+avatarSrc+")"
+}
 
   function resize(image, width, height, quality) {
     const canvas = document.createElement("canvas");
@@ -57,7 +61,9 @@ document.addEventListener("DOMContentLoaded", () => {
       		imgSrc=this.src
       		let username = window.localStorage.getItem('username')
             let room = window.localStorage.getItem('room')
-            socket.emit("sendGIF", {imgSrc:imgSrc, username:username, room:room})
+            if (window.localStorage.getItem('avatar') != null){
+            var avatarSrc=window.localStorage.getItem('avatar');}
+            socket.emit("sendGIF", {imgSrc:imgSrc, username:username, room:room, avatarSrc:avatarSrc})
       		clearGIFS();
       };
 
@@ -67,35 +73,45 @@ document.addEventListener("DOMContentLoaded", () => {
   divChat.className='chat';
   document.querySelector("ul").appendChild(divChat);
 
+  const divTime= document.createElement('p');
+  divTime.className ='time';
+  divTime.innerHTML=`${data.timestamp}`
+  //divMessage.appendChild(divTime);
+
+
   const divAvatar = document.createElement("div");
   divAvatar.className = "avatar";
+  if (data.avatarSrc !=null){
+      divAvatar.style.backgroundImage="url("+data.avatarSrc+")"}
   divChat.appendChild(divAvatar);
-  if (data.post !=null){
-  const divMessage = document.createElement("p");
-  divMessage.className = "chat-message";
-  divMessage.innerHTML =` ${data.post}`;
-  divChat.appendChild(divMessage);}
 
   const divUser = document.createElement('p');
   divUser.className ='user';
   divUser.innerHTML=`${data.username}`
   divChat.appendChild(divUser);
- if (data.base64!=null){
+
+  if (data.post !=null){
+  const divMessage = document.createElement("p");
+  divMessage.className = "chat-message";
+  divMessage.innerHTML =` ${data.post}`;
+  divChat.appendChild(divMessage);
+  divMessage.appendChild(divTime);}
+
+  if (data.base64!=null){
   const divImage = document.createElement("p");
   divImage.className = "chat-img";
   divImage.innerHTML = `${'<img src="' + data.base64 + '"/>'} `;
-  divChat.appendChild(divImage);}
+  divChat.appendChild(divImage);
+  divImage.appendChild(divTime);}
 
   if (data.imgSrc!=null){
    const divImage = document.createElement("p");
    divImage.className = "chat-img";
    divImage.innerHTML = `${'<img src="' + data.imgSrc + '"/>'} `;
-   divChat.appendChild(divImage);}
+   divChat.appendChild(divImage);
+   divImage.appendChild(divTime);}
 
-  const divTime= document.createElement('p');
-  divTime.className ='time';
-  divTime.innerHTML=`${data.timestamp}`
-  divChat.appendChild(divTime);
+
   }
 
 function settingRoom(){
@@ -193,15 +209,16 @@ document.getElementById("inputChannelButton").addEventListener("click", e => {
       e.preventDefault();
 
 
-
+      if (window.localStorage.getItem('avatar') != null){
+      var avatarSrc=window.localStorage.getItem('avatar');}
 
           const post = input.value;
           console.log(post);
           let room = window.localStorage.getItem("room");
           const username = window.localStorage.getItem("username");
           if (input.value !=''){
-
-          socket.emit("msg", { post: post, username: username, room: room });
+              console.log(avatarSrc);
+          socket.emit("msg", { post: post, username: username, room: room, avatarSrc:avatarSrc });
       }
           document.getElementById("input-message").value = "";
       });
@@ -297,8 +314,9 @@ socket.on("gifDisplay", data => {
           image = new Image();
           image.src = mock;
           var base64 = resize(image, 150, 100, 0.6);
-
-          socket.emit("user_image", { base64: base64, room: room });
+          if (window.localStorage.getItem('avatar') != null){
+          var avatarSrc=window.localStorage.getItem('avatar');}
+          socket.emit("user_image", { base64: base64, room: room,avatarSrc:avatarSrc });
         };
       };
     });
@@ -312,7 +330,25 @@ socket.on("gifDisplay", data => {
 
 
 
+document.getElementById('inputAvatar').addEventListener('change', e =>{
+    var file = e.target.files[0],
+      reader = new FileReader();
 
+    reader.readAsDataURL(e.target.files[0]);
+    reader.onload = function(evt) {
+      const img = new Image();
+      img.src = evt.target.result;
+      var mock = img.src;
+
+      img.onload = () => {
+        image = new Image();
+        image.src = mock;
+        var avatarSrc = resize(image, 50, 50, 0.5);
+        document.getElementById('inputAvatarLabel').style.backgroundImage="url("+avatarSrc+")"
+        window.localStorage.setItem('avatar', avatarSrc);
+    };
+};
+});
 
 
 
@@ -334,59 +370,85 @@ socket.on("restr", data => {
 
   for (var i = 0; i < histLength; i++) {
 
-    if (history[i].includes("data:image/jpeg;base64")) {
-      const divChat = document.createElement("li");
-      divChat.className = "chat";
-      document.querySelector("ul").appendChild(divChat);
+        var historySplit=history[i].split("$??$");
 
-      const divMessage = document.createElement("p");
-      divMessage.className = "chat-message";
+    var divChat = document.createElement("li");
+    divChat.className = "chat";
+    document.querySelector("ul").appendChild(divChat);
+
+    const divTimestamp = document.createElement("p");
+    divTimestamp.className = "time";
+    //divChat.appendChild(divTimestamp);
+    divTimestamp.innerHTML = historySplit[3];
+
+    var divAvatar = document.createElement("div");
+    divAvatar.className = "avatar";
+    divAvatar.style.backgroundImage="url("+historySplit[0]+")"
+    divChat.appendChild(divAvatar);
+
+    var divUsername = document.createElement("p");
+    divUsername.className = "user";
+    divChat.appendChild(divUsername);
+
+    divUsername.innerHTML = historySplit[1];
+
+    if ((historySplit[2].includes("data:image/jpeg;base64")||(historySplit[2].includes("https://media.tenor.com")))) {
+     // const divChat = document.createElement("li");
+     // divChat.className = "chat";
+     // document.querySelector("ul").appendChild(divChat);
+
+      var divMessage = document.createElement("p");
+      divMessage.className = "chat-img";
+      divMessage.appendChild(divTimestamp)
       divChat.appendChild(divMessage);
 
-      divMessage.innerHTML = `${'<img src="' + history[i] + '"/>'}`;
+      divMessage.innerHTML = `${'<img src="' + historySplit[2] + '"/>'}`;
+    }
+    else  {
+        //const divChat = document.createElement("li");
+        //divChat.className = "chat";
+    //    document.querySelector("ul").appendChild(divChat);
+
+        var divMessage = document.createElement("p");
+        divMessage.className = "chat-message";
+        divChat.appendChild(divMessage);
+        divMessage.appendChild(divTimestamp)
+        divMessage.innerHTML =historySplit[2];
+
     }
 
 
-     else if (history[i].includes("https://media.tenor.com")) {
-      const divChat = document.createElement("li");
-      divChat.className = "chat";
-      document.querySelector("ul").appendChild(divChat);
+     //else if (historySplit[2].includes("https://media.tenor.com")) {
+//      const divChat = document.createElement("li");
+//      divChat.className = "chat";
+//      document.querySelector("ul").appendChild(divChat);
 
-      const divMessage = document.createElement("p");
-      divMessage.className = "chat-message";
-      divChat.appendChild(divMessage);
+    //  const divMessage = document.createElement("p");
+//      divMessage.className = "chat-message";
+//      divChat.appendChild(divMessage);
 
-      divMessage.innerHTML = `${'<img src="' + history[i] + '"/>'}`;
+//      divMessage.innerHTML = `${'<img src="' + historySplit[2] + '"/>'}`;
+//    }
+
+    //else if (
+//      history[i].includes("connect") ||
+//      history[i].includes("disconnect")
+//    ) {
+    //    const divChat = document.createElement("li");
+    //    divChat.className = "chat";
+    //    document.querySelector("ul").appendChild(divChat);
+    //  const span = document.createElement("p");
+    //  span.className = "server-message";
+//      span.innerHTML = `${history[i]}`;
+//      divChat.appendChild(span);
+//    }
+
+//    else {
+
+
+
     }
 
-    else if (
-      history[i].includes("connect") ||
-      history[i].includes("disconnect")
-    ) {
-        const divChat = document.createElement("li");
-        divChat.className = "chat";
-        document.querySelector("ul").appendChild(divChat);
-      const span = document.createElement("p");
-      span.className = "server-message";
-      span.innerHTML = `${history[i]}`;
-      divChat.appendChild(span);
-    }
-
-    else {
-      const divChat = document.createElement("li");
-      divChat.className = "chat";
-      document.querySelector("ul").appendChild(divChat);
-
-      const divAvatar = document.createElement("div");
-      divAvatar.className = "avatar";
-      divChat.appendChild(divAvatar);
-      const divMessage = document.createElement("p");
-      divMessage.className = "chat-message";
-      divChat.appendChild(divMessage);
-
-      divMessage.innerHTML = history[i];
-    }
-  }
 });
 socket.on("disconnect", () => {
   let username = window.localStorage.getItem("username");

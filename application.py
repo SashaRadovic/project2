@@ -38,7 +38,7 @@ def welcome(data):
     users.update(new_pair)
     print(users)
     print(users_per_rooms)
-    history[room].append(timestamp+': '+username+' connected on channel '+room)
+    
     print(history)
     emit('wlc', {"username":username, 'timestamp':timestamp,'users_per_rooms':users_per_rooms, 'channels':channels,'room':room },broadcast=True)
 
@@ -82,7 +82,7 @@ def quit():
     print(username)
     leave_room(room)
     timestamp = time.strftime('%I:%M%p on %b %d, %Y')
-    history[room].append(timestamp+': '+username+' disconnected')
+
     del users_per_rooms[username]
     print(users_per_rooms)
     emit('quit_msg', {"username":username, 'timestamp':timestamp, 'room':room,'users_per_rooms':users_per_rooms },room=room)
@@ -91,24 +91,26 @@ def quit():
 def send_message(data):
     post=data['post']
     room=data['room']
+    avatarSrc=data['avatarSrc']
     username=data['username']
     timestamp = time.strftime('%I:%M%p on %b %d, %Y')
 
-    history[room].append(timestamp+': '+username+': '+post)
+    history[room].append(avatarSrc+"$??$"+username+"$??$" +post+"$??$"+timestamp)
+
     print(history)
 
-    emit("send_message", {'post': post,'username':username, 'timestamp':timestamp, 'channels':channels}, room=room)
+    emit("send_message", {'post': post,'username':username, 'timestamp':timestamp, 'channels':channels, 'avatarSrc':avatarSrc}, room=room)
 
 @socketio.on("user_image")
 def send_image(data):
     base64=data['base64']
     userId =request.sid
     room=data['room']
+    avatarSrc=data['avatarSrc']
     username=[u for (u, sid) in users.items() if userId==sid][0]
     timestamp = time.strftime('%I:%M%p on %b %d, %Y')
-    history[room].append(timestamp+': '+username+': ')
-    history[room].append(base64)
-    emit("send_image", {'base64':base64, 'username':username, 'timestamp':timestamp},room=room)
+    history[room].append(avatarSrc+"$??$"+username+"$??$" +base64+"$??$"+timestamp)
+    emit("send_image", {'base64':base64, 'username':username, 'timestamp':timestamp,'avatarSrc':avatarSrc},room=room)
 
 @socketio.on("selectRoom")
 def roomChange(data):
@@ -135,13 +137,14 @@ def roomChange(data):
 @socketio.on("sendGIF")
 def gifDisplay(data):
     room=data['room']
+    avatarSrc=data['avatarSrc']
     username=data['username']
     imgSrc=data['imgSrc']
     timestamp = time.strftime('%I:%M%p on %b %d, %Y')
-    history[room].append(timestamp+': '+username+': ')
-    history[room].append(imgSrc)
+    history[room].append(avatarSrc+"$??$"+username+"$??$" +imgSrc+"$??$"+timestamp)
+
     print(imgSrc)
-    emit("gifDisplay", {'username':username,'timestamp':timestamp,'room':room, 'channels':channels,'users_per_rooms':users_per_rooms, 'imgSrc':imgSrc}, room=room)
+    emit("gifDisplay", {'username':username,'timestamp':timestamp,'room':room, 'channels':channels,'users_per_rooms':users_per_rooms, 'imgSrc':imgSrc,'avatarSrc':avatarSrc}, room=room)
 
 
 
