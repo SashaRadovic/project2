@@ -1,6 +1,7 @@
 window.onbeforeunload = ()=>{
      window.sessionStorage.clear();
 }
+
 document.addEventListener("DOMContentLoaded", () => {
   // Connect to websocket
   var socket = io.connect(
@@ -73,10 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
   divChat.className='chat';
   document.querySelector("ul").appendChild(divChat);
 
-  const divTime= document.createElement('p');
-  divTime.className ='time';
-  divTime.innerHTML=`${data.timestamp}`
-  //divMessage.appendChild(divTime);
+
 
 
   const divAvatar = document.createElement("div");
@@ -95,29 +93,33 @@ document.addEventListener("DOMContentLoaded", () => {
   divMessage.className = "chat-message";
   divMessage.innerHTML =` ${data.post}`;
   divChat.appendChild(divMessage);
-  divMessage.appendChild(divTime);}
+  }
 
   if (data.base64!=null){
   const divImage = document.createElement("p");
   divImage.className = "chat-img";
   divImage.innerHTML = `${'<img src="' + data.base64 + '"/>'} `;
   divChat.appendChild(divImage);
-  divImage.appendChild(divTime);}
+  }
 
   if (data.imgSrc!=null){
    const divImage = document.createElement("p");
    divImage.className = "chat-img";
    divImage.innerHTML = `${'<img src="' + data.imgSrc + '"/>'} `;
    divChat.appendChild(divImage);
-   divImage.appendChild(divTime);}
+   }
 
-
+   const divTime= document.createElement('p');
+   divTime.className ='time';
+   divTime.innerHTML=`${data.timestamp}`
+   divChat.appendChild(divTime);
+   document.querySelector('.chatlogs').scrollTop=document.querySelector('.chatlogs').scrollHeight;
   }
 
 function settingRoom(){
-    const changeRoom =this.innerHTML;
+    const changeRoom =this.innerText;
     const oldRoom=window.localStorage.getItem('room');
-    console.log(this.innerHTML);
+    console.log(this.innerText);
     var username=localStorage.getItem('username')
     console.log(username)
     document.querySelector('h3').innerHTML='#'+changeRoom;
@@ -139,17 +141,39 @@ socket.on("checkUser", (data)=>{
     window.localStorage.setItem('userPerRoom', JSON.stringify(data.users_per_rooms));
 })
 
-
+/////////////////
 socket.on("roomChange", (data)=>{
     window.localStorage.setItem('userPerRoom', JSON.stringify(data.users_per_rooms));
-})
+    document.querySelectorAll('.ch-button').forEach (function(button){
+
+        var buttonValue = button.innerText
+        console.log(button.innerText)
+        var users =Object.values(data.users_per_rooms);
+        if(button.contains(button.querySelector('span'))){
+        button.removeChild(button.querySelector('span'))}
+
+        console.log(users);
+
+        if(users.indexOf(buttonValue)!=-1){
+        var numberOfUsers =
+        users.filter(function(value){
+        return value === buttonValue;}).length;
+        let badge=document.createElement('span')
+        badge.className='badge';
+        badge.innerHTML=numberOfUsers;
+        button.appendChild(badge);
+                    }
+
+
+});
+});
 
 
 
   socket.on("connect", () => {
 const inputChannel =document.querySelector('#post-channel');
 document.getElementById("inputChannelButton").addEventListener("click", e => {
-     e.preventDefault();
+     e.stopPropagation();
         const newRoom = inputChannel.value;
         console.log(newRoom)
 
@@ -170,6 +194,7 @@ document.getElementById("inputChannelButton").addEventListener("click", e => {
     if (window.localStorage.getItem("username") !== null) {
       var username = window.localStorage.getItem("username");
       const wMessage = document.createElement("li");
+      wMessage.className='server-message';
 
       var room = window.localStorage.getItem("room");
       wMessage.innerHTML = "Welcome back " + username + "!";
@@ -200,7 +225,8 @@ document.getElementById("inputChannelButton").addEventListener("click", e => {
   socket.on("connect", () => {
        const input = document.getElementById("input-message");
        document.querySelectorAll('.emoji').forEach(function(button) {
-              button.onclick = function() {
+              button.onclick = function(e) {
+              e.stopPropagation();
               console.log(input.value);
               input.value +=  String.fromCodePoint(button.dataset.value);
               }
@@ -225,7 +251,9 @@ document.getElementById("inputChannelButton").addEventListener("click", e => {
   });
 
   socket.on("wlc", data => {
-
+      document.querySelector('#newItem').innerHTML="";
+      window.localStorage.setItem('userPerRoom', JSON.stringify(data.users_per_rooms));
+      var users_per_rooms =JSON.parse(window.localStorage.getItem('userPerRoom'))
       const divChat = document.createElement("li");
       divChat.className = "chat";
       document.querySelector("ul").appendChild(divChat);
@@ -237,17 +265,44 @@ document.getElementById("inputChannelButton").addEventListener("click", e => {
       divChat.appendChild(span);
       console.log(data.channels)
 
-    if (sessionStorage.getItem('channels')==null){
-        sessionStorage.setItem('channels', 'set')
+
+    //if (sessionStorage.getItem('channels')==null){
+    //    sessionStorage.setItem('channels', 'set')
+
+
+
+
+
+
+
 
      for (i =0; i<data.channels.length;i++){
          var channelButton = document.createElement('button');
+         console.log(i)
          channelButton.className='ch-button form-control';
          channelButton.innerHTML=data.channels[i];
+         console.log(data.channels[i])
+         document.getElementById('newItem').appendChild(channelButton);
+         var users =Object.values(users_per_rooms);
+
+
+         if(users.indexOf(data.channels[i])!=-1){
+         var numberOfUsers =
+         users.filter(function(value){
+         return value === data.channels[i];}).length;
+         let badge= document.createElement('span');
+         badge.innerHTML=numberOfUsers;
+
+         badge.className='badge';
+         channelButton.appendChild(badge);
+     }
+
+
          channelButton.onclick = settingRoom;
-         console.log(data.channels[i]);
-         document.querySelector('#newItem').appendChild(channelButton);}
-    }
+
+        // document.querySelector('#newItem').appendChild(channelButton);
+     }
+
     window.localStorage.setItem('userPerRoom', JSON.stringify(data.users_per_rooms));
   });
 
@@ -261,8 +316,9 @@ socket.on("createRoom", data=>{
     document.querySelector('#newItem').appendChild(channelButton);
 })
 
-document.querySelector('#searchGIFButton').addEventListener('click', ()=>{
-		 var value=document.querySelector('#searchGIF').value
+document.querySelector('#searchGIFButton').addEventListener('click', (e)=>{
+         e.stopPropagation();
+         var value=document.querySelector('#searchGIF').value
 		 if (value!=""){
 		 clearGIFS()
 		 getGifs(value)
@@ -270,14 +326,13 @@ document.querySelector('#searchGIFButton').addEventListener('click', ()=>{
 		 }
 });
 document.querySelector('#GIF').addEventListener('click', (e)=>{
-				//e.preventDefault()
+
 				if (document.querySelector('#searchGIF').value==''){
 				var value="trending"
 		 } else{var value = document.querySelector('#searchGIF').value}
-			//		if(document.querySelector('#gifs').innerHTML !=''){
 					clearGIFS();
 					getGifs(value);
-					//}
+
 
 
 });
@@ -376,21 +431,19 @@ socket.on("restr", data => {
     divChat.className = "chat";
     document.querySelector("ul").appendChild(divChat);
 
-    const divTimestamp = document.createElement("p");
-    divTimestamp.className = "time";
-    //divChat.appendChild(divTimestamp);
-    divTimestamp.innerHTML = historySplit[3];
+
 
     var divAvatar = document.createElement("div");
     divAvatar.className = "avatar";
-    divAvatar.style.backgroundImage="url("+historySplit[0]+")"
+    if(historySplit[1]!=window.localStorage.getItem('username')){
+    divAvatar.style.backgroundImage="url("+historySplit[0]+")"}
+    else{divAvatar.style.backgroundImage="url("+(window.localStorage.getItem('avatar'))+")"}
     divChat.appendChild(divAvatar);
 
     var divUsername = document.createElement("p");
     divUsername.className = "user";
-    divChat.appendChild(divUsername);
-
     divUsername.innerHTML = historySplit[1];
+    divChat.appendChild(divUsername);
 
     if ((historySplit[2].includes("data:image/jpeg;base64")||(historySplit[2].includes("https://media.tenor.com")))) {
      // const divChat = document.createElement("li");
@@ -399,7 +452,7 @@ socket.on("restr", data => {
 
       var divMessage = document.createElement("p");
       divMessage.className = "chat-img";
-      divMessage.appendChild(divTimestamp)
+     // divMessage.appendChild(divTimestamp)
       divChat.appendChild(divMessage);
 
       divMessage.innerHTML = `${'<img src="' + historySplit[2] + '"/>'}`;
@@ -412,11 +465,15 @@ socket.on("restr", data => {
         var divMessage = document.createElement("p");
         divMessage.className = "chat-message";
         divChat.appendChild(divMessage);
-        divMessage.appendChild(divTimestamp)
+        //divMessage.appendChild(divTimestamp)
         divMessage.innerHTML =historySplit[2];
 
     }
-
+    const divTimestamp = document.createElement("p");
+    divTimestamp.className = "time";
+    divChat.appendChild(divTimestamp);
+    divTimestamp.innerHTML = historySplit[3];
+    document.querySelector('.chatlogs').scrollTop=document.querySelector('.chatlogs').scrollHeight;
 
      //else if (historySplit[2].includes("https://media.tenor.com")) {
 //      const divChat = document.createElement("li");

@@ -48,8 +48,8 @@
       </div>
 
       <form id="sendForm" class="" action="">
-        <input id="input-message" type="text-area" name="" value="">
-        <input id="input-send" type="submit" name="" value="Send">
+        <textarea id="input-message" type="text-area" name="" value=""></textarea>
+        <button id="input-send" type="submit" name="" value="">Send</button>
       </form>
 
 
@@ -66,7 +66,7 @@
             <br>
 
             <button class="emoji" id="wink" data-value="0x1F60D">&#x1F60D;</button>
-            <button class="emoji" data-value="0x1F61C" id="smailey">&#x1F61C;</button>
+            <button class="emoji" data-value="0x1F61C" id="smiley">&#x1F61C;</button>
             <button class="emoji" data-value="0x1F618" id="cry">&#x1F618;</button>
             <button class="emoji" id="wink" data-value="0x1F621">&#x1F621;</button>
           </div>
@@ -77,13 +77,16 @@
           <button class="btn btn-light" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">#
           </button>
 
-            <div id='newItem' class="dropdown-menu dropdown-info">
+            <div  class="dropdown-menu dropdown-info">
 
             <input id="post-channel" type="text-area" class="form-control">
 
             <button id="inputChannelButton" type="submit" class="form-control">Add channel</button>
             <br>
 
+            <div  id="newItem" >
+
+            </div>
 
             </div>
         </div>
@@ -117,7 +120,7 @@
 
 
 
-        <div class="dropdown float-left input-label btn btn-light">
+        <div  id="inputImageButton" class="dropdown float-left input-label btn btn-light">
 
           <input  type="file" id="imagefile" accept="image/*"><i class="fa fa-file-picture-o"></i>
 

@@ -38,7 +38,7 @@ def welcome(data):
     users.update(new_pair)
     print(users)
     print(users_per_rooms)
-    
+
     print(history)
     emit('wlc', {"username":username, 'timestamp':timestamp,'users_per_rooms':users_per_rooms, 'channels':channels,'room':room },broadcast=True)
 
@@ -131,7 +131,7 @@ def roomChange(data):
     print(users_per_rooms)
 
 
-    emit("roomChange", {'username':username,'timestamp':timestamp,'room':room, 'channels':channels,'users_per_rooms':users_per_rooms} , broadcast=True)
+    emit("wlc", {'username':username,'timestamp':timestamp,'room':room, 'channels':channels,'users_per_rooms':users_per_rooms} , broadcast=True)
     emit("restr", {'history':history[room]})
 
 @socketio.on("sendGIF")
