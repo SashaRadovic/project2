@@ -42,7 +42,7 @@ def welcome(data):
     print(history)
     emit('wlc', {"username":username, 'timestamp':timestamp,'users_per_rooms':users_per_rooms, 'channels':channels,'room':room },broadcast=True)
 
-    emit('restr', {"history":history[room]})
+    emit('restr', {"history":history[room],"username":username,'room':room})
 
 
 @socketio.on('addRoom')
@@ -91,6 +91,7 @@ def quit():
 def send_message(data):
     post=data['post']
     room=data['room']
+
     avatarSrc=data['avatarSrc']
     username=data['username']
     timestamp = time.strftime('%I:%M%p on %b %d, %Y')
@@ -132,7 +133,7 @@ def roomChange(data):
 
 
     emit("wlc", {'username':username,'timestamp':timestamp,'room':room, 'channels':channels,'users_per_rooms':users_per_rooms} , broadcast=True)
-    emit("restr", {'history':history[room]})
+    emit("restr", {'history':history[room],'username':username,'room':room,})
 
 @socketio.on("sendGIF")
 def gifDisplay(data):

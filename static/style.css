@@ -13,17 +13,18 @@ body{
     width: 50%;
     min-width: 390px;
     height: 90%;
-    background: #ff3333;
+    background: #ffb3b3;
     padding: 25px;
     margin: 20px auto;
     box-shadow: 0 3px grey;
+    border-radius: 10px;
 }
 .chatlogs {
     padding: 10px;
     width: 100%;
     height: 450px;
     background: lightgrey;
-
+    border-radius: 10px 10px 5px 5px;
     overflow-x: hidden;
     overflow-y: scroll;
 
@@ -45,11 +46,14 @@ body{
     list-style: none;
 
 }
+.chat li, ul {
+    list-style: none;
+}
 .avatar {
     position:relative;
     width: 50px;
     height: 50px;
-    background-image: url("img/generic.png");
+    background-image: url('https://cdn1.iconfinder.com/data/icons/ordinary-people/512/music-512.png');
     background-position: center; /* Center the image */
     background-repeat: no-repeat; /* Do not repeat the image */
     background-size: cover;
@@ -62,7 +66,7 @@ body{
     padding: 15px;
     display:inline-block;
     background: #f2f2f2;
-    border-radius: 10px;
+    border-radius: 0 10px 10px 10px;
     font-size: 14px;
     width:auto;
     margin-left: 60px;
@@ -81,9 +85,9 @@ body{
    margin-left: 60px;
 }
 .chat-img img{
-    border-radius: 10px;
+    border-radius: 0 10px 10px 10px;
     background:  #f2f2f2;
-    padding-bottom: 15px;
+
 
 }
 .user {
@@ -136,6 +140,8 @@ body{
     width:85%;
     height:40px;
     resize:none;
+    border-radius: 5px;
+     background: #f2f2f2;
 }
 #input-message:focus{
     background: white;
@@ -146,42 +152,76 @@ body{
     padding: 5px 10px;
     font-size: 20px;
     color:white;
-    width:auto;
+    flex:auto;
     height: 40px;
+    border-radius: 5px;
 }
-
+#input-send:hover{
+    background: lightblue;
+}
 
 .buttons {
 	display: flex;
     margin: 0px;
 }
-
+.brushes{
+    margin-left:auto;
+}
+.brushes button {
+    background-color: inherit;
+    border-width: 0;
+    padding-top: 5px;
+}
 
 
 
 #inputAvatarDiv{
-    display:inline;
+    display:flex;
+    justify-content: space-between;
+
 }
 #inputAvatar{
     display:none;
 }
 #inputAvatarLabel{
 
-        float: right;
+
         width: 50px;
         height: 50px;
-        background-image: url("img/generic.png");
+        background-image: url('https://cdn1.iconfinder.com/data/icons/ordinary-people/512/music-512.png');
         background-position: center; /* Center the image */
         background-repeat: no-repeat; /* Do not repeat the image */
         background-size: cover;
         margin: 5px;
+
         border-radius: 50%;
 }
-h3 {
-    float:left;
+#h3 {
+
+    color:white;
+    font-size: 24px;
+    margin-bottom: 0;
+    padding-top: 10px;
+
 }
-.dropdown {
-    background-color: #ff3333;
+   .dropdown button {
+
+    background-color: #ffb3b3;
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
     font-weight: bold;
+    font-size: 18px;
+}
+.dropdown{
+    background-color: #ffb3b3;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.badge {
+    display:inline-flex;
+}
+.emoji {
+    border: 0;
+
 }

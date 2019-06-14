@@ -10,7 +10,9 @@ document.addEventListener("DOMContentLoaded", () => {
   if (window.localStorage.getItem('avatar') != null){
   var avatarSrc=window.localStorage.getItem('avatar');
   document.getElementById('inputAvatarLabel').style.backgroundImage="url("+avatarSrc+")"
-}
+}else{
+
+    window.localStorage.setItem('avatar', 'https://cdn1.iconfinder.com/data/icons/ordinary-people/512/music-512.png')}
 
   function resize(image, width, height, quality) {
     const canvas = document.createElement("canvas");
@@ -117,7 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 function settingRoom(){
-    const changeRoom =this.innerText;
+    const changeRoom =this.name;
     const oldRoom=window.localStorage.getItem('room');
     console.log(this.innerText);
     var username=localStorage.getItem('username')
@@ -141,7 +143,7 @@ socket.on("checkUser", (data)=>{
     window.localStorage.setItem('userPerRoom', JSON.stringify(data.users_per_rooms));
 })
 
-/////////////////
+
 socket.on("roomChange", (data)=>{
     window.localStorage.setItem('userPerRoom', JSON.stringify(data.users_per_rooms));
     document.querySelectorAll('.ch-button').forEach (function(button){
@@ -159,7 +161,7 @@ socket.on("roomChange", (data)=>{
         users.filter(function(value){
         return value === buttonValue;}).length;
         let badge=document.createElement('span')
-        badge.className='badge';
+        badge.className='badge badge-light';
         badge.innerHTML=numberOfUsers;
         button.appendChild(badge);
                     }
@@ -199,7 +201,7 @@ document.getElementById("inputChannelButton").addEventListener("click", e => {
       var room = window.localStorage.getItem("room");
       wMessage.innerHTML = "Welcome back " + username + "!";
       document.querySelector("#chat-wrp").appendChild(wMessage);
-      document.querySelector("h3").innerHTML = "#" + room;
+      document.querySelector("#h3").innerHTML = "#" + room;
   }
 
       else {
@@ -215,7 +217,7 @@ document.getElementById("inputChannelButton").addEventListener("click", e => {
         username +
         ", on channel --"+ room+ "! You can set new username or channel";
       document.querySelector("#chat-wrp").appendChild(info);
-      document.querySelector("h3").innerHTML = "#" + room;
+      document.querySelector("#h3").innerHTML = "#" + room;
   };
     socket.emit("welcome", { username: username, room: room });
   });
@@ -266,21 +268,13 @@ document.getElementById("inputChannelButton").addEventListener("click", e => {
       console.log(data.channels)
 
 
-    //if (sessionStorage.getItem('channels')==null){
-    //    sessionStorage.setItem('channels', 'set')
-
-
-
-
-
-
-
 
      for (i =0; i<data.channels.length;i++){
          var channelButton = document.createElement('button');
          console.log(i)
          channelButton.className='ch-button form-control';
          channelButton.innerHTML=data.channels[i];
+         channelButton.name =data.channels[i];
          console.log(data.channels[i])
          document.getElementById('newItem').appendChild(channelButton);
          var users =Object.values(users_per_rooms);
@@ -300,7 +294,7 @@ document.getElementById("inputChannelButton").addEventListener("click", e => {
 
          channelButton.onclick = settingRoom;
 
-        // document.querySelector('#newItem').appendChild(channelButton);
+
      }
 
     window.localStorage.setItem('userPerRoom', JSON.stringify(data.users_per_rooms));
@@ -356,8 +350,8 @@ socket.on("gifDisplay", data => {
     document.getElementById("imagefile").addEventListener("change", e => {
 
       let room = window.localStorage.getItem("room");
-      var file = e.target.files[0],
-        reader = new FileReader();
+      var file = e.target.files[0];
+      var reader = new FileReader();
 
       reader.readAsDataURL(e.target.files[0]);
       reader.onload = function(evt) {
@@ -379,9 +373,57 @@ socket.on("gifDisplay", data => {
 
   socket.on("send_image", data => {
 
-      package(data)
+      package(data);
 
   });
+
+
+
+  document.querySelectorAll('.navLabel').forEach(function(button){
+  	button.onclick=console.log(button.name)
+  	button.onclick= changeColorSheme;
+
+  });
+
+  function changeColorSheme(button){
+  	const Red= new Array('#FFDEDB','#FE8176','#FE2712','#A70F01','#340D09')
+  	const Blue= new Array('#DBE5FF','#678FFE','#0247FE','#012998','#091534')
+  	const Grey= new Array('#F5F7F8','#8BA6B1','#55737F','#2D3D43','#172429')
+  	const colorShemas= {'red':Red, 'blue':Blue, 'grey':Grey}
+  	console.log(this.name)
+
+  	colorSelector=colorShemas[this.name]
+  	document.body.style.backgroundColor=colorSelector[0];
+  	document.querySelector('.chatbox').style.backgroundColor=colorSelector[3];
+    document.querySelector('.chatlogs').style.backgroundColor=colorSelector[1]
+    document.querySelector('#input-send').style.backgroundColor=colorSelector[2]
+  	document.querySelector('.buttons').style.backgroundColor=colorSelector[3]
+  	 var y =document.getElementsByClassName('btn')
+        for( var i=0; i<y.length;i++){
+        y[i].style.backgroundColor=colorSelector[3];
+        y[i].style.color=colorSelector[0]}
+
+        var x =document.getElementsByClassName('dropdown')
+           for( var i=0; i<x.length;i++){
+           x[i].style.backgroundColor=colorSelector[3];
+           x[i].style.color=colorSelector[0]}
+
+        var z =document.getElementsByClassName('emoji')
+           for( var i=0; i<z.length;i++){
+           z[i].style.backgroundColor=colorSelector[1];
+           z[i].style.color=colorSelector[0]}
+
+
+        var t =document.getElementsByClassName('form-control')
+              for( var i=0; i<t.length;i++){
+              t[i].style.backgroundColor=colorSelector[3];
+              t[i].style.color=colorSelector[0]}
+  		}
+
+
+
+
+
 
 
 
@@ -407,21 +449,15 @@ document.getElementById('inputAvatar').addEventListener('change', e =>{
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 socket.on("restr", data => {
+
+
   document.querySelector('#chat-wrp').innerHTML='';
+
   var history = data.history;
   var histLength = history.length;
+  var username =data.username;
+  var room =data.room;
 
   for (var i = 0; i < histLength; i++) {
 
@@ -446,21 +482,14 @@ socket.on("restr", data => {
     divChat.appendChild(divUsername);
 
     if ((historySplit[2].includes("data:image/jpeg;base64")||(historySplit[2].includes("https://media.tenor.com")))) {
-     // const divChat = document.createElement("li");
-     // divChat.className = "chat";
-     // document.querySelector("ul").appendChild(divChat);
 
-      var divMessage = document.createElement("p");
-      divMessage.className = "chat-img";
-     // divMessage.appendChild(divTimestamp)
-      divChat.appendChild(divMessage);
 
-      divMessage.innerHTML = `${'<img src="' + historySplit[2] + '"/>'}`;
+        var divMessage = document.createElement("p");
+        divMessage.className = "chat-img";
+        divChat.appendChild(divMessage);
+        divMessage.innerHTML = `${'<img src="' + historySplit[2] + '"/>'}`;
     }
     else  {
-        //const divChat = document.createElement("li");
-        //divChat.className = "chat";
-    //    document.querySelector("ul").appendChild(divChat);
 
         var divMessage = document.createElement("p");
         divMessage.className = "chat-message";
@@ -475,38 +504,17 @@ socket.on("restr", data => {
     divTimestamp.innerHTML = historySplit[3];
     document.querySelector('.chatlogs').scrollTop=document.querySelector('.chatlogs').scrollHeight;
 
-     //else if (historySplit[2].includes("https://media.tenor.com")) {
-//      const divChat = document.createElement("li");
-//      divChat.className = "chat";
-//      document.querySelector("ul").appendChild(divChat);
-
-    //  const divMessage = document.createElement("p");
-//      divMessage.className = "chat-message";
-//      divChat.appendChild(divMessage);
-
-//      divMessage.innerHTML = `${'<img src="' + historySplit[2] + '"/>'}`;
-//    }
-
-    //else if (
-//      history[i].includes("connect") ||
-//      history[i].includes("disconnect")
-//    ) {
-    //    const divChat = document.createElement("li");
-    //    divChat.className = "chat";
-    //    document.querySelector("ul").appendChild(divChat);
-    //  const span = document.createElement("p");
-    //  span.className = "server-message";
-//      span.innerHTML = `${history[i]}`;
-//      divChat.appendChild(span);
-//    }
-
-//    else {
 
 
+}
+var li = document.createElement("li");
+li.className = "server-message";
+li.innerHTML = `Welcome ${data.username} to channel ${data.room}!`;
 
-    }
+document.querySelector("ul").appendChild(li);
 
 });
+
 socket.on("disconnect", () => {
   let username = window.localStorage.getItem("username");
   let room = window.localStorage.getItem("room");
