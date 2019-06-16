@@ -124,7 +124,7 @@ function settingRoom(){
     console.log(this.innerText);
     var username=localStorage.getItem('username')
     console.log(username)
-    document.querySelector('h3').innerHTML='#'+changeRoom;
+    document.querySelector('#h3').innerHTML='#'+changeRoom;
 
     window.localStorage.setItem('room',changeRoom)
     socket.emit('selectRoom', {username:username, room:changeRoom, oldRoom:oldRoom})
