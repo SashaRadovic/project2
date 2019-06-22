@@ -7,6 +7,9 @@ document.addEventListener("DOMContentLoaded", () => {
   var socket = io.connect(
     location.protocol + "//" + document.domain + ":" + location.port
   );
+	
+//check if there's an avatar pic in local storage
+	
   if (window.localStorage.getItem('avatar') != null){
   var avatarSrc=window.localStorage.getItem('avatar');
   document.getElementById('inputAvatarLabel').style.backgroundImage="url("+avatarSrc+")"
@@ -14,6 +17,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     window.localStorage.setItem('avatar', 'https://cdn1.iconfinder.com/data/icons/ordinary-people/512/music-512.png')}
 
+//resize images and convert to base64	
+	
   function resize(image, width, height, quality) {
     const canvas = document.createElement("canvas");
     canvas.width = width;
@@ -26,6 +31,8 @@ document.addEventListener("DOMContentLoaded", () => {
     return resFile;
   }
 
+// fetching gifs from Tenor using public key, append them to container div and assign onclick event-clears div after event is trigerred 
+	
   function getGifs(value){
         let urlGIF = `https://api.tenor.com/v1/search?q=${value}&key=V413C22P4CZD&limit=9&anon_id=3a76e56901d740da9e59ffb22b988242`;
          console.log(urlGIF)
@@ -58,8 +65,9 @@ document.addEventListener("DOMContentLoaded", () => {
           document.querySelector('#gifs').innerHTML='';
       }
 
+//emits selected gif's src to a server
+	
       function sendGIFToServer (){
-
 
       		imgSrc=this.src
       		let username = window.localStorage.getItem('username')
@@ -69,15 +77,12 @@ document.addEventListener("DOMContentLoaded", () => {
             socket.emit("sendGIF", {imgSrc:imgSrc, username:username, room:room, avatarSrc:avatarSrc})
       		clearGIFS();
       };
-
+// packing data for displaying on chat log
 
   function package (data ){
   const divChat = document.createElement("li");
   divChat.className='chat';
   document.querySelector("ul").appendChild(divChat);
-
-
-
 
   const divAvatar = document.createElement("div");
   divAvatar.className = "avatar";
@@ -118,6 +123,8 @@ document.addEventListener("DOMContentLoaded", () => {
    document.querySelector('.chatlogs').scrollTop=document.querySelector('.chatlogs').scrollHeight;
   }
 
+//emits selected channel info	
+	
 function settingRoom(){
     const changeRoom =this.name;
     const oldRoom=window.localStorage.getItem('room');
@@ -130,6 +137,8 @@ function settingRoom(){
     socket.emit('selectRoom', {username:username, room:changeRoom, oldRoom:oldRoom})
 }
 
+//listening for a click event on change user button-changes username and emits data to a server	
+	
   document.querySelector('#inputUserButton').addEventListener('click', ()=>{
       let oldUser=window.localStorage.getItem('username');
       let newUser = document.querySelector('#post-username').value ;
@@ -139,11 +148,15 @@ function settingRoom(){
       window.localStorage.setItem('username', newUser);
 
   })
+	
+//stores an array with users:rooms pairs to a local storage
+	
 socket.on("checkUser", (data)=>{
     window.localStorage.setItem('userPerRoom', JSON.stringify(data.users_per_rooms));
 })
 
-
+// on room change or connect assigns a badge with number that represents connected users per channel
+	
 socket.on("roomChange", (data)=>{
     window.localStorage.setItem('userPerRoom', JSON.stringify(data.users_per_rooms));
     document.querySelectorAll('.ch-button').forEach (function(button){
@@ -170,7 +183,7 @@ socket.on("roomChange", (data)=>{
 });
 });
 
-
+//adding newroom that is not on default rooms list and emits data
 
   socket.on("connect", () => {
 const inputChannel =document.querySelector('#post-channel');
@@ -190,7 +203,7 @@ document.getElementById("inputChannelButton").addEventListener("click", e => {
 });
 });
 
-
+//on coonect checks if there's dat in local sorage and if it's not assigns guest name with random number -emits data to a server
 
   socket.on("connect", () => {
     if (window.localStorage.getItem("username") !== null) {
@@ -222,7 +235,7 @@ document.getElementById("inputChannelButton").addEventListener("click", e => {
     socket.emit("welcome", { username: username, room: room });
   });
 
-
+//listens to a click event of an emoji buttons container -the choice is displayed on input message field
 
   socket.on("connect", () => {
        const input = document.getElementById("input-message");
@@ -252,6 +265,8 @@ document.getElementById("inputChannelButton").addEventListener("click", e => {
       });
   });
 
+//displays welcome message to a channel and reviews channel list with number of users per channel
+	
   socket.on("wlc", data => {
       document.querySelector('#newItem').innerHTML="";
       window.localStorage.setItem('userPerRoom', JSON.stringify(data.users_per_rooms));
@@ -300,7 +315,8 @@ document.getElementById("inputChannelButton").addEventListener("click", e => {
     window.localStorage.setItem('userPerRoom', JSON.stringify(data.users_per_rooms));
   });
 
-
+//displays data from server - create new room appendnew button to a channel list
+	
 socket.on("createRoom", data=>{
     var channelButton =document.createElement('button');
     channelButton.className='ch-button form-control';
@@ -310,15 +326,20 @@ socket.on("createRoom", data=>{
     document.querySelector('#newItem').appendChild(channelButton);
 })
 
+//displays gifs upon input 
+
 document.querySelector('#searchGIFButton').addEventListener('click', (e)=>{
          e.stopPropagation();
          var value=document.querySelector('#searchGIF').value
 		 if (value!=""){
 		 clearGIFS()
 		 getGifs(value)
-		 //value=document.querySelector('#searchGif').style.display='box;'
+		 
 		 }
 });
+
+//displays default gif search - trending
+	
 document.querySelector('#GIF').addEventListener('click', (e)=>{
 
 				if (document.querySelector('#searchGIF').value==''){
@@ -332,7 +353,7 @@ document.querySelector('#GIF').addEventListener('click', (e)=>{
 });
 
 
-
+//calls package function to diplay gif recieved ftom server
 
 socket.on("gifDisplay", data => {
 
@@ -340,12 +361,16 @@ socket.on("gifDisplay", data => {
 
 });
 
+//calls package function to display message recieved from server	
+	
   socket.on("send_message", data => {
     if (data.post !=''){
         package(data);
     }
   });
 
+//listens to click event on get image button, calls resize function and sends data to a server	
+	
   socket.on("connect", () => {
     document.getElementById("imagefile").addEventListener("change", e => {
 
@@ -371,20 +396,23 @@ socket.on("gifDisplay", data => {
     });
   });
 
+// calling package function to display image recieved from server	
+	
   socket.on("send_image", data => {
 
       package(data);
 
   });
 
-
+//listens to a click event on change color sheme buttons and calls change color sheme function
 
   document.querySelectorAll('.navLabel').forEach(function(button){
-  	button.onclick=console.log(button.name)
+  	
   	button.onclick= changeColorSheme;
 
   });
-
+// stores color codes in arrays for different shemes and assigns color properties to elements
+	
   function changeColorSheme(button){
   	const Red= new Array('#FFDEDB','#FE8176','#FE2712','#A70F01','#340D09')
   	const Blue= new Array('#DBE5FF','#678FFE','#0247FE','#012998','#091534')
@@ -425,7 +453,7 @@ socket.on("gifDisplay", data => {
 
 
 
-
+//listens on a click event of avatar label opens file select menu and calls resize function on selected avatar image
 
 document.getElementById('inputAvatar').addEventListener('change', e =>{
     var file = e.target.files[0],
@@ -447,7 +475,7 @@ document.getElementById('inputAvatar').addEventListener('change', e =>{
 };
 });
 
-
+// restores data from selected room recieved from a server
 
 socket.on("restr", data => {
 
@@ -515,12 +543,15 @@ document.querySelector("ul").appendChild(li);
 
 });
 
+	
+// sends message about user leaving room	
 socket.on("disconnect", () => {
   let username = window.localStorage.getItem("username");
   let room = window.localStorage.getItem("room");
   socket.emit("disconnect", { username: username, room: room });
 });
-
+//displays message about user leaving room
+	
 socket.on("quit_msg", data => {
   const li = document.createElement("li");
   li.className = "server-message";
