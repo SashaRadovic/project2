@@ -3,7 +3,7 @@ import requests
 import time
 from flask import Flask, jsonify, render_template, request
 from flask_socketio import SocketIO, emit, join_room, leave_room
-
+# setting channel list, history, users and users per rooms dictionaries
 
 channels=['music', 'fashion', 'books', 'movies','general']
 history ={'general':[],'music':[],'fashion':[],'books':[],'movies':[]}
@@ -18,7 +18,7 @@ def index():
     return render_template("index.html")
 
 
-
+# after recieving package on client connect updates data
 
 @socketio.on("welcome")
 def welcome(data):
@@ -32,6 +32,7 @@ def welcome(data):
     join_room(room)
     timestamp = time.strftime('%I:%M%p on %b %d, %Y')
     sid=request.sid
+   # checks if there is a pair username:sid,delete the old pair and append new one
     if username in users:
         del users[username]
     new_pair={username:sid}
@@ -40,6 +41,8 @@ def welcome(data):
     print(users_per_rooms)
 
     print(history)
+    #emits wlc event and restr(restore) event to cover history changes per channel
+    
     emit('wlc', {"username":username, 'timestamp':timestamp,'users_per_rooms':users_per_rooms, 'channels':channels,'room':room },broadcast=True)
 
     emit('restr', {"history":history[room],"username":username,'room':room})
@@ -49,6 +52,7 @@ def welcome(data):
 def createRoom(data):
     room=data['room']
     username=data['username']
+#after receiving data from client updates channel list and user per room dictionary as well as history
     if room not in channels:
         channels.append(room)
         print(channels)
@@ -64,6 +68,7 @@ def checkUser(data):
     username=data['username']
     room=data['room']
     oldUser=data['oldUser']
+    #adding new username and delete old user
     del users_per_rooms[oldUser]
     newValue={username:room}
     print(newValue)
@@ -75,7 +80,7 @@ def checkUser(data):
 
 @socketio.on("disconnect")
 def quit():
-
+    #identifies user by sid and emits server message on disconnect
     userId =request.sid
     username=[u for (u, sid) in users.items() if userId==sid][0]
     room=users_per_rooms[username]
@@ -99,7 +104,7 @@ def send_message(data):
     history[room].append(avatarSrc+"$??$"+username+"$??$" +post+"$??$"+timestamp)
 
     print(history)
-
+    #emits data package to be displayed on client side
     emit("send_message", {'post': post,'username':username, 'timestamp':timestamp, 'channels':channels, 'avatarSrc':avatarSrc}, room=room)
 
 @socketio.on("user_image")
@@ -111,10 +116,12 @@ def send_image(data):
     username=[u for (u, sid) in users.items() if userId==sid][0]
     timestamp = time.strftime('%I:%M%p on %b %d, %Y')
     history[room].append(avatarSrc+"$??$"+username+"$??$" +base64+"$??$"+timestamp)
+    #emits converted image to be displayed on client side in a package with other data
     emit("send_image", {'base64':base64, 'username':username, 'timestamp':timestamp,'avatarSrc':avatarSrc},room=room)
 
 @socketio.on("selectRoom")
 def roomChange(data):
+    #joins user to a new room and leaves the old one
     username=data['username']
     oldRoom=data['oldRoom']
     leave_room(oldRoom)
@@ -143,7 +150,7 @@ def gifDisplay(data):
     imgSrc=data['imgSrc']
     timestamp = time.strftime('%I:%M%p on %b %d, %Y')
     history[room].append(avatarSrc+"$??$"+username+"$??$" +imgSrc+"$??$"+timestamp)
-
+    #emits gif source along with other data in the package
     print(imgSrc)
     emit("gifDisplay", {'username':username,'timestamp':timestamp,'room':room, 'channels':channels,'users_per_rooms':users_per_rooms, 'imgSrc':imgSrc,'avatarSrc':avatarSrc}, room=room)
 
