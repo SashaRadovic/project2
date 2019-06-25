@@ -58,10 +58,10 @@ def createRoom(data):
         print(channels)
         new_chanel={room:[]}
         history.update(new_chanel)
-    del users_per_rooms[username]
-    new_chanel_pair={username:room}
-    users_per_rooms.update(new_chanel_pair)
-    emit('createRoom', {'room':room, 'username':username, 'users_per_rooms':users_per_rooms}, broadcast=True)
+        del users_per_rooms[username]
+        new_chanel_pair={username:room}
+        users_per_rooms.update(new_chanel_pair)
+        emit('createRoom', {'room':room, 'username':username, 'users_per_rooms':users_per_rooms}, broadcast=True)
 
 @socketio.on('addUser')
 def checkUser(data):
